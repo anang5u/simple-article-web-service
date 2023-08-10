@@ -12,11 +12,11 @@ import (
 
 // Article model
 type ArticleModel struct {
-	ID      int
-	Author  string
-	Title   string
-	Body    string
-	Created time.Time
+	ID      int       `json:"id"`
+	Author  string    `json:"author"`
+	Title   string    `json:"title"`
+	Body    string    `json:"body"`
+	Created time.Time `json:"created"`
 }
 
 // const default environment
