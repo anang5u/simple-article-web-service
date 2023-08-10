@@ -31,8 +31,8 @@ var (
 	errArticleNotFound = errors.New("article not found")
 )
 
-// articleRepository
-type articleRepository interface {
+// ArticleRepository
+type ArticleRepository interface {
 	Create(author, title, body string, created time.Time) error
 	Get(filters ...map[string]string) ([]*ArticleModel, error)
 	GetByID(ID int) (*ArticleModel, error)
@@ -45,7 +45,7 @@ type article struct {
 }
 
 // CreateArticleRepository
-func CreateArticleRepository(db *sql.DB) articleRepository {
+func CreateArticleRepository(db *sql.DB) ArticleRepository {
 	return &article{
 		DB: db,
 	}
