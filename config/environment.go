@@ -20,6 +20,9 @@ var Environment = map[string]string{
 	"redis_addr":     "localhost:6379",
 	"redis_password": "",
 	"redis_db":       "0",
+
+	// others
+	"cache_article_exp_time": "1", // article cache expired in minutes
 }
 
 // Get perform to get configuration

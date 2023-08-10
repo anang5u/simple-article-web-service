@@ -1,9 +1,13 @@
 package query_test
 
 import (
+	"context"
+	"encoding/json"
+	"simple-ddd-cqrs/config"
 	"simple-ddd-cqrs/pkg/domain"
 	"simple-ddd-cqrs/pkg/query"
 	"simple-ddd-cqrs/service"
+	"strconv"
 	"testing"
 	"time"
 
@@ -78,11 +82,48 @@ func TestArticleQueryHandler_GetArticleFromCache(t *testing.T) {
 	mock.ExpectGet("article:123").
 		SetVal(`{"ID": 123, "Author": "Test Author", "Title": "Test Title", "Body": "Test Body", "Created": "2023-07-29T15:00:00Z"}`)
 
-	cachedArticle := articleQueryHandler.GetArticleFromCache(123)
+	ctx := context.Background()
+	cachedArticle := articleQueryHandler.GetArticleFromCache(ctx, 123)
 	assert.NotNil(t, cachedArticle)
 	assert.Equal(t, 123, cachedArticle.ID)
 	assert.Equal(t, "Test Author", cachedArticle.Author)
 	// ...assert other fields as needed
 
 	// Test other scenarios...
+}
+
+func TestArticleQueryHandler_StoreArticleIntoCache(t *testing.T) {
+	// Membuat mock Redis client
+	client, mock := redismock.NewClientMock()
+
+	articleQueryHandler := query.NewArticleQueryHandler(nil).WithRedis(client)
+
+	// Mock artikel yang akan disimpan ke dalam cache
+	articles := []*domain.ArticleModel{
+		{
+			ID:      1,
+			Author:  "Test Author",
+			Title:   "Test Title",
+			Body:    "Test Body",
+			Created: time.Now(),
+		},
+	}
+
+	expirationTime, err := strconv.Atoi(config.Get("CACHE_ARTICLE_EXP_TIME"))
+	if err != nil {
+		expirationTime = 1
+	}
+
+	// Ekspektasi panggilan Set
+	for _, article := range articles {
+		redisKey := "article:" + strconv.Itoa(article.ID)
+		itemJSON, _ := json.Marshal(article)
+		mock.ExpectSet(redisKey, string(itemJSON), (time.Duration(expirationTime) * time.Minute)).
+			SetVal("OK")
+	}
+
+	// Panggil fungsi StoreArticleIntoCache
+	err = articleQueryHandler.StoreArticleIntoCache(context.Background(), articles)
+
+	assert.NoError(t, err)
 }

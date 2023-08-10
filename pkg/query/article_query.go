@@ -5,7 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"simple-ddd-cqrs/config"
 	"simple-ddd-cqrs/pkg/domain"
+	"strconv"
+	"time"
 
 	"github.com/go-redis/redis/v8"
 )
@@ -17,7 +20,8 @@ type ArticleQueryHandler interface {
 	GetListArticle(filters ...map[string]string) ([]*domain.ArticleModel, error)
 	GetArticleByID(ID int) (*domain.ArticleModel, error)
 	WithRedis(redis *redis.Client) *articleQueryHandler
-	GetArticleFromCache(ID int) *domain.ArticleModel
+	GetArticleFromCache(ctx context.Context, ID int) *domain.ArticleModel
+	StoreArticleIntoCache(ctx context.Context, articles []*domain.ArticleModel) error
 }
 
 // articleQueryHandler
@@ -51,8 +55,10 @@ func (h *articleQueryHandler) GetListArticle(filters ...map[string]string) ([]*d
 
 // GetArticleByID
 func (h *articleQueryHandler) GetArticleByID(ID int) (*domain.ArticleModel, error) {
+	ctx := context.Background()
+
 	// Check if the item is available in the Redis cache
-	cachedArticle := h.GetArticleFromCache(ID)
+	cachedArticle := h.GetArticleFromCache(ctx, ID)
 	if cachedArticle != nil {
 		return cachedArticle, nil
 	}
@@ -66,12 +72,11 @@ func (h *articleQueryHandler) GetArticleByID(ID int) (*domain.ArticleModel, erro
 }
 
 // GetArticleFromCache
-func (h *articleQueryHandler) GetArticleFromCache(ID int) *domain.ArticleModel {
+func (h *articleQueryHandler) GetArticleFromCache(ctx context.Context, ID int) *domain.ArticleModel {
 	if h.redis == nil {
 		return nil
 	}
 
-	ctx := context.Background()
 	redisKey := fmt.Sprintf("%s%d", articleRedisKeyPrefix, ID)
 
 	// Check if the item is available in the Redis cache
@@ -91,6 +96,29 @@ func (h *articleQueryHandler) GetArticleFromCache(ID int) *domain.ArticleModel {
 	// error redis
 	if err != redis.Nil {
 		log.Println("Error while Get from redis, ", err)
+	}
+
+	return nil
+}
+
+// StoreArticleIntoCache
+func (h *articleQueryHandler) StoreArticleIntoCache(ctx context.Context, articles []*domain.ArticleModel) error {
+	for _, article := range articles {
+		redisKey := fmt.Sprintf("%s%d", articleRedisKeyPrefix, article.ID)
+
+		// Marshal the item to JSON and store it in the Redis cache
+		itemJSON, err := json.Marshal(article)
+		if err != nil {
+			return err
+		}
+
+		// Set the item in the Redis cache with an expiration time
+		expirationTime, err := strconv.Atoi(config.Get("CACHE_ARTICLE_EXP_TIME"))
+		if err != nil {
+			log.Println("Error strconv.Atoi CACHE_ARTICLE_EXP_TIME. ", err)
+			expirationTime = 1
+		}
+		h.redis.Set(ctx, redisKey, itemJSON, (time.Duration(expirationTime) * time.Minute))
 	}
 
 	return nil
