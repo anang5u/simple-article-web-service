@@ -68,6 +68,13 @@ func (h *articleQueryHandler) GetArticleByID(ID int) (*domain.ArticleModel, erro
 		return nil, err
 	}
 
+	// store article into cache
+	articles := []*domain.ArticleModel{}
+	articles = append(articles, article)
+	if err := h.StoreArticleIntoCache(ctx, articles); err != nil {
+		log.Println("Error on GetArticleByID while store article into cache. ", err)
+	}
+
 	return article, nil
 }
 
@@ -103,6 +110,10 @@ func (h *articleQueryHandler) GetArticleFromCache(ctx context.Context, ID int) *
 
 // StoreArticleIntoCache
 func (h *articleQueryHandler) StoreArticleIntoCache(ctx context.Context, articles []*domain.ArticleModel) error {
+	if h.redis == nil {
+		return nil
+	}
+
 	for _, article := range articles {
 		redisKey := fmt.Sprintf("%s%d", articleRedisKeyPrefix, article.ID)
 
