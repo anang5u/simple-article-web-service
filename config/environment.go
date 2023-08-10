@@ -1,0 +1,37 @@
+package config
+
+import (
+	"os"
+	"strings"
+)
+
+// Default configuration
+var Environment = map[string]string{
+	"app_port": "8999",
+
+	// Database
+	"db_host":     "pgsql-server",
+	"db_port":     "5432",
+	"db_user":     "postgres",
+	"db_password": "secr3tPWD",
+	"db_name":     "web_db",
+
+	// Redis
+	"redis_addr":     "localhost:6379",
+	"redis_password": "",
+	"redis_db":       "0",
+}
+
+// Get perform to get configuration
+// Default taken from Environment Map with lowercase key
+// if uppercase key from env is not exist
+func Get(key string) string {
+	cfg := os.Getenv(strings.ToUpper(key))
+	if cfg == "" {
+		if val, ok := Environment[strings.ToLower(key)]; ok {
+			cfg = val // Default config taken from Environment
+		}
+	}
+
+	return cfg
+}
