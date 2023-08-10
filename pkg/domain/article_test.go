@@ -61,6 +61,36 @@ func Test_ArticleGet(t *testing.T) {
 	assert.Len(t, articles, 1)
 }
 
+func Test_ArticleGetWithFilter(t *testing.T) {
+	db, mock := service.NewDBMock()
+	repo := domain.CreateArticleRepository(db)
+	defer db.Close()
+
+	var (
+		ID      = 1
+		author  = "Author test"
+		title   = "Title test"
+		body    = "Body test"
+		created = time.Now()
+	)
+
+	query := "SELECT id, author, title, body, created FROM articles"
+
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
+		AddRow(ID, author, title, body, created)
+
+	mock.ExpectQuery(query).WillReturnRows(rows)
+
+	filter := map[string]string{
+		"author": "Author test",
+	}
+	articles, err := repo.Get(filter)
+
+	assert.NotEmpty(t, articles)
+	assert.NoError(t, err)
+	assert.Len(t, articles, 1)
+}
+
 // Test Get Article ByID
 func Test_GetArticleByID(t *testing.T) {
 	db, mock := service.NewDBMock()
@@ -85,4 +115,19 @@ func Test_GetArticleByID(t *testing.T) {
 	article, err := repo.GetByID(ID)
 	assert.NotNil(t, article)
 	assert.NoError(t, err)
+}
+
+// Test buildFilter Article
+func Test_BuildFilterValueArticle(t *testing.T) {
+	repo := domain.CreateArticleRepository(nil)
+
+	filter := map[string]string{
+		"title":  "title search",
+		"body":   "body search",
+		"author": "author 1",
+	}
+	sFilter, values := repo.BuildFilterValues(filter)
+
+	assert.Contains(t, sFilter, "AND")
+	assert.Len(t, values, 3)
 }

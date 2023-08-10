@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -33,8 +34,9 @@ var (
 // articleRepository
 type articleRepository interface {
 	Create(author, title, body string, created time.Time) error
-	Get() ([]*ArticleModel, error)
+	Get(filters ...map[string]string) ([]*ArticleModel, error)
 	GetByID(ID int) (*ArticleModel, error)
+	BuildFilterValues(filter map[string]string) (string, []interface{})
 }
 
 // article
@@ -72,14 +74,31 @@ func (r *article) Create(author, title, body string, created time.Time) error {
 }
 
 // Get perform to get list of articles
-func (r *article) Get() ([]*ArticleModel, error) {
+func (r *article) Get(filters ...map[string]string) ([]*ArticleModel, error) {
 	articles := make([]*ArticleModel, 0)
 
 	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
-	query := fmt.Sprintf(`SELECT id, author, title, body, created FROM articles ORDER BY created DESC LIMIT %d`, aRTICLES_PER_PAGE)
-	rows, err := r.DB.QueryContext(ctx, query)
+	// filter article by
+	sCond := ""
+	var filterValues []interface{}
+	if len(filters) > 0 {
+		sCond, filterValues = r.BuildFilterValues(filters[0])
+	}
+
+	query := fmt.Sprintf(`
+		SELECT 
+			id, 
+			author, 
+			title, 
+			body, 
+			created 
+		FROM articles %s 
+		ORDER BY created 
+		DESC LIMIT %d`, sCond, aRTICLES_PER_PAGE)
+
+	rows, err := r.DB.QueryContext(ctx, query, filterValues...)
 	if err != nil {
 		log.Println("Error while Get query article: ", err)
 		return nil, errArticleNotFound
@@ -126,6 +145,47 @@ func (r *article) GetByID(ID int) (*ArticleModel, error) {
 		log.Println("Error while article by ID: ", err)
 		return nil, errArticleNotFound
 	}
-	return result, nil
 
+	return result, nil
+}
+
+// BuildFilterValues
+func (r *article) BuildFilterValues(filter map[string]string) (string, []interface{}) {
+	sFilter := ""
+	var filterValues []interface{}
+	num := 1
+
+	// check filter is appear
+	if len(filter) == 0 {
+		sFilter = "WHERE"
+	}
+
+	// filter by keyword search title
+	if title, ok := filter["title"]; ok {
+		sFilter = fmt.Sprintf("%s LOWER(title) LIKE '%%' || $%d || '%%' AND", sFilter, num)
+		filterValues = append(filterValues, title)
+
+		num++
+	}
+
+	// filter by keyword search body
+	if body, ok := filter["body"]; ok {
+		sFilter = fmt.Sprintf("%s LOWER(body) LIKE '%%' || $%d || '%%' AND", sFilter, num)
+		filterValues = append(filterValues, body)
+
+		num++
+	}
+
+	// filter by author
+	if author, ok := filter["author"]; ok {
+		sFilter = fmt.Sprintf("%s author = $%d AND", sFilter, num)
+		filterValues = append(filterValues, author)
+
+		num++
+	}
+
+	// trim end of string sFilter AND
+	sFilter = strings.TrimRight(sFilter, "AND")
+
+	return sFilter, filterValues
 }
