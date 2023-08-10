@@ -20,8 +20,8 @@ type ArticleModel struct {
 
 // const default environment
 const (
-	CTX_TIMEOUT       = 5  // db context timeout in second
-	ARTICLES_PER_PAGE = 20 // list articles fetch per page
+	cTX_TIMEOUT       = 5  // db context timeout in second
+	aRTICLES_PER_PAGE = 20 // list articles fetch per page
 )
 
 // error message
@@ -30,10 +30,11 @@ var (
 	errArticleNotFound = errors.New("article not found")
 )
 
-// ArticleRepository
-type ArticleRepository interface {
+// articleRepository
+type articleRepository interface {
 	Create(author, title, body string, created time.Time) error
 	Get() ([]*ArticleModel, error)
+	GetByID(ID int) (*ArticleModel, error)
 }
 
 // article
@@ -42,7 +43,7 @@ type article struct {
 }
 
 // CreateArticleRepository
-func CreateArticleRepository(db *sql.DB) ArticleRepository {
+func CreateArticleRepository(db *sql.DB) articleRepository {
 	return &article{
 		DB: db,
 	}
@@ -50,7 +51,7 @@ func CreateArticleRepository(db *sql.DB) ArticleRepository {
 
 // Create perform to create new article
 func (r *article) Create(author, title, body string, created time.Time) error {
-	ctx, cancel := context.WithTimeout(context.Background(), CTX_TIMEOUT*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
 	query := "INSERT INTO articles (author, title, body, created) VALUES ($1, $2, $3, $4)"
@@ -74,10 +75,10 @@ func (r *article) Create(author, title, body string, created time.Time) error {
 func (r *article) Get() ([]*ArticleModel, error) {
 	articles := make([]*ArticleModel, 0)
 
-	ctx, cancel := context.WithTimeout(context.Background(), CTX_TIMEOUT*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
-	query := fmt.Sprintf(`SELECT id, author, title, body, created FROM articles ORDER BY created DESC LIMIT %d`, ARTICLES_PER_PAGE)
+	query := fmt.Sprintf(`SELECT id, author, title, body, created FROM articles ORDER BY created DESC LIMIT %d`, aRTICLES_PER_PAGE)
 	rows, err := r.DB.QueryContext(ctx, query)
 	if err != nil {
 		log.Println("Error while Get query article: ", err)
@@ -110,7 +111,7 @@ func (r *article) Get() ([]*ArticleModel, error) {
 func (r *article) GetByID(ID int) (*ArticleModel, error) {
 	result := new(ArticleModel)
 
-	ctx, cancel := context.WithTimeout(context.Background(), CTX_TIMEOUT*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
 	err := r.DB.QueryRowContext(ctx, "SELECT id, author, title, body, created FROM articles WHERE id = $1", ID).
