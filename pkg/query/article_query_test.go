@@ -8,10 +8,11 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/go-redis/redismock/v8"
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_ArticleQueryGet(t *testing.T) {
+func TestArticleQueryHandler_GetListArticle(t *testing.T) {
 	db, mock := service.NewDBMock()
 	articleRepo := domain.CreateArticleRepository(db)
 	defer db.Close()
@@ -40,7 +41,7 @@ func Test_ArticleQueryGet(t *testing.T) {
 	assert.Len(t, articles, 1)
 }
 
-func Test_GetQueryArticleByID(t *testing.T) {
+func TestArticleQueryHandler_GetArticleByID(t *testing.T) {
 	db, mock := service.NewDBMock()
 	articleRepo := domain.CreateArticleRepository(db)
 	defer db.Close()
@@ -65,4 +66,23 @@ func Test_GetQueryArticleByID(t *testing.T) {
 	article, err := articleQueryHandler.GetArticleByID(ID)
 	assert.NotNil(t, article)
 	assert.NoError(t, err)
+}
+
+func TestArticleQueryHandler_GetArticleFromCache(t *testing.T) {
+	// mock Redis client
+	client, mock := redismock.NewClientMock()
+
+	articleQueryHandler := query.NewArticleQueryHandler(nil).WithRedis(client)
+
+	// Mock Redis response for cached item
+	mock.ExpectGet("article:123").
+		SetVal(`{"ID": 123, "Author": "Test Author", "Title": "Test Title", "Body": "Test Body", "Created": "2023-07-29T15:00:00Z"}`)
+
+	cachedArticle := articleQueryHandler.GetArticleFromCache(123)
+	assert.NotNil(t, cachedArticle)
+	assert.Equal(t, 123, cachedArticle.ID)
+	assert.Equal(t, "Test Author", cachedArticle.Author)
+	// ...assert other fields as needed
+
+	// Test other scenarios...
 }
