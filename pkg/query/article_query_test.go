@@ -39,3 +39,30 @@ func Test_ArticleQueryGet(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, articles, 1)
 }
+
+func Test_GetQueryArticleByID(t *testing.T) {
+	db, mock := service.NewDBMock()
+	articleRepo := domain.CreateArticleRepository(db)
+	defer db.Close()
+
+	var (
+		ID      = 1
+		author  = "Author test"
+		title   = "Title test"
+		body    = "Body test"
+		created = time.Now()
+	)
+
+	queryStmt := "SELECT id, author, title, body, created FROM articles WHERE id = \\$1"
+
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
+		AddRow(ID, author, title, body, created)
+
+	mock.ExpectQuery(queryStmt).WithArgs(ID).WillReturnRows(rows)
+
+	articleQueryHandler := query.NewArticleQueryHandler(articleRepo)
+
+	article, err := articleQueryHandler.GetArticleByID(ID)
+	assert.NotNil(t, article)
+	assert.NoError(t, err)
+}
