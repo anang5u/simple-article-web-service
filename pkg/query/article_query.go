@@ -117,6 +117,12 @@ func (h *articleQueryHandler) StoreArticleIntoCache(ctx context.Context, article
 	for _, article := range articles {
 		redisKey := fmt.Sprintf("%s%d", articleRedisKeyPrefix, article.ID)
 
+		// Check if the article is still available in the Redis cache
+		cachedArticle := h.GetArticleFromCache(ctx, article.ID)
+		if cachedArticle != nil {
+			continue // skip for caching
+		}
+
 		// Marshal the item to JSON and store it in the Redis cache
 		itemJSON, err := json.Marshal(article)
 		if err != nil {
