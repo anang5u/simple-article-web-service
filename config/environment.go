@@ -7,7 +7,8 @@ import (
 
 // Default configuration
 var Environment = map[string]string{
-	"app_port": "8999",
+	"app_port":        "8999",
+	"app_environment": "development",
 
 	// Database
 	"db_host":     "pgsql-server",

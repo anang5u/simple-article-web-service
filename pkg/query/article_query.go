@@ -108,6 +108,11 @@ func (h *articleQueryHandler) GetArticleFromCache(ctx context.Context, ID int) *
 			return nil
 		}
 
+		// debug for development only
+		if config.Get("APP_ENVIRONMENT") == "development" {
+			log.Println("cached article found with id ", ID)
+		}
+
 		return &cachedArticle
 	}
 
@@ -147,6 +152,11 @@ func (h *articleQueryHandler) StoreArticleIntoCache(ctx context.Context, article
 			expirationTime = 1
 		}
 		h.redis.Set(ctx, redisKey, itemJSON, (time.Duration(expirationTime) * time.Minute))
+
+		// debug for development only
+		if config.Get("APP_ENVIRONMENT") == "development" {
+			log.Println("article stored into cache. id ", article.ID)
+		}
 	}
 
 	return nil
