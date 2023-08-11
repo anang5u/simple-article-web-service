@@ -66,3 +66,30 @@ paths:
                   author: Jane Smith
                   body: This is another article.
                   created: 2023-08-11T08:17:19Z
+  /articles/{id}/{name}:
+    get:
+      summary: Get an article by ID and name
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Article ID
+        - in: path
+          name: name
+          schema:
+            type: string
+          required: false
+          description: Article name for SEO Optimization only
+      responses:
+        '200':
+          description: Article details
+          content:
+            application/json:
+              example:
+                id: "1"
+                title: Sample Article
+                name: sampe-article
+                author: John Doe
+                body: This is a sample article.

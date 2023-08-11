@@ -151,7 +151,7 @@ func (r *article) GetByID(ID int) (*ArticleModel, error) {
 			&result.Created,
 		)
 	if err != nil {
-		log.Println("Error while get article by ID: ", err)
+		log.Printf("Error while get article by ID: %d, Err: %s\n", ID, err.Error())
 		return nil, errArticleNotFound
 	}
 
