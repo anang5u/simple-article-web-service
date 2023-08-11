@@ -32,8 +32,8 @@ func initRedisClient() *redis.Client {
 	})
 
 	ctx := context.Background()
-	if err := redisClient.Ping(ctx); err != nil {
-		log.Fatal(err)
+	if pong := redisClient.Ping(ctx); pong.String() != "ping: PONG" {
+		log.Fatal("-------------Error connection redis ----------:", pong)
 	}
 
 	return redisClient

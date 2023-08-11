@@ -37,7 +37,7 @@ func main() {
 
 	// Init command and query handlers
 	articleCommandHandler := command.NewArticleCommandHandler(articleRepo)
-	articleQueryHandler := query.NewArticleQueryHandler(articleRepo)
+	articleQueryHandler := query.NewArticleQueryHandler(articleRepo).WithRedis(service.GetRedisClient())
 
 	// Init controller
 	articleController := controller.NewArticleController(articleCommandHandler, articleQueryHandler)
