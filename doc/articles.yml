@@ -1,0 +1,68 @@
+openapi: "3.0.0"
+info:
+  title: "Simple Web Service with DDD-CQRS"
+  version: "1.0.0"
+servers:
+  - url: "http://localhost:8999"
+paths:
+  /articles:
+    post:
+      summary: "Create a new article"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                author:
+                  type: string
+                body:
+                  type: string
+              example:
+                title: "New Article"
+                author: "John Doe"
+                body: "This is the article body."
+      responses:
+        "201":
+          description: "Created"
+        "400":
+          description: "Bad Request"
+    get:
+      summary: Get list of articles based on title, body, and author filters
+      parameters:
+        - in: query
+          name: title
+          schema:
+            type: string
+          description: Filter articles by title
+        - in: query
+          name: body
+          schema:
+            type: string
+          description: Filter articles by body
+        - in: query
+          name: author
+          schema:
+            type: string
+          description: Filter articles by author
+      responses:
+        '200':
+          description: List of articles
+          content:
+            application/json:
+              example:
+                - id: "1"
+                  title: Sample Article
+                  name: sample-article
+                  author: John Doe
+                  body: This is a sample article.
+                  created: 2023-08-11T08:17:19Z
+                - id: "2"
+                  title: Another Article
+                  name: sample-article
+                  author: Jane Smith
+                  body: This is another article.
+                  created: 2023-08-11T08:17:19Z

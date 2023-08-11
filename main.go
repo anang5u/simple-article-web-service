@@ -11,6 +11,7 @@ import (
 	"simple-ddd-cqrs/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -24,6 +25,12 @@ func main() {
 
 	// Init Fiber app
 	app := fiber.New()
+
+	// Middleware CORS
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 
 	// create article repository
 	articleRepo := domain.CreateArticleRepository(service.GetDBConnection())
