@@ -102,7 +102,7 @@ func (r *article) Get(filters ...map[string]string) ([]*ArticleModel, error) {
 
 	rows, err := r.DB.QueryContext(ctx, query, filterValues...)
 	if err != nil {
-		log.Println("Error while Get query article: ", err)
+		log.Printf("Error while Get query article. Err: %s Query: %s\n", err.Error(), query)
 		return nil, errArticleNotFound
 	}
 	defer rows.Close()
@@ -160,7 +160,7 @@ func (r *article) BuildFilterValues(filter map[string]string) (string, []interfa
 	num := 1
 
 	// check filter is appear
-	if len(filter) == 0 {
+	if len(filter) > 0 {
 		sFilter = "WHERE"
 	}
 
