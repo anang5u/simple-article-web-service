@@ -126,6 +126,11 @@ func (r *article) Get(filters ...map[string]string) ([]*ArticleModel, error) {
 		articles = append(articles, result)
 	}
 
+	// fix empty article
+	if len(articles) == 0 {
+		return nil, errArticleNotFound
+	}
+
 	return articles, nil
 }
 
