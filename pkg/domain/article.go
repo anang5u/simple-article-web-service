@@ -15,6 +15,7 @@ type ArticleModel struct {
 	ID      int       `json:"id"`
 	Author  string    `json:"author"`
 	Title   string    `json:"title"`
+	Name    string    `json:"name"` // for improve SEO Optimization
 	Body    string    `json:"body"`
 	Created time.Time `json:"created"`
 }
@@ -33,7 +34,7 @@ var (
 
 // ArticleRepository
 type ArticleRepository interface {
-	Create(author, title, body string, created time.Time) error
+	Create(author, title, name, body string, created time.Time) error
 	Get(filters ...map[string]string) ([]*ArticleModel, error)
 	GetByID(ID int) (*ArticleModel, error)
 	BuildFilterValues(filter map[string]string) (string, []interface{})
@@ -52,11 +53,11 @@ func CreateArticleRepository(db *sql.DB) ArticleRepository {
 }
 
 // Create perform to create new article
-func (r *article) Create(author, title, body string, created time.Time) error {
+func (r *article) Create(author, title, name, body string, created time.Time) error {
 	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
-	query := "INSERT INTO articles (author, title, body, created) VALUES ($1, $2, $3, $4)"
+	query := "INSERT INTO articles (author, title, name, body, created) VALUES ($1, $2, $3, $4, $5)"
 	stmt, err := r.DB.PrepareContext(ctx, query)
 	if err != nil {
 		log.Println("Error while Create PrepareContext article: ", err)
@@ -64,7 +65,7 @@ func (r *article) Create(author, title, body string, created time.Time) error {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.ExecContext(ctx, author, title, body, created)
+	_, err = stmt.ExecContext(ctx, author, title, name, body, created)
 	if err != nil {
 		log.Println("Error while Create ExecContext article: ", err)
 		return errCreateArticle
@@ -92,6 +93,7 @@ func (r *article) Get(filters ...map[string]string) ([]*ArticleModel, error) {
 			id, 
 			author, 
 			title, 
+			name,
 			body, 
 			created 
 		FROM articles %s 
@@ -111,6 +113,7 @@ func (r *article) Get(filters ...map[string]string) ([]*ArticleModel, error) {
 			&result.ID,
 			&result.Author,
 			&result.Title,
+			&result.Name,
 			&result.Body,
 			&result.Created,
 		)
@@ -133,16 +136,17 @@ func (r *article) GetByID(ID int) (*ArticleModel, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), cTX_TIMEOUT*time.Second)
 	defer cancel()
 
-	err := r.DB.QueryRowContext(ctx, "SELECT id, author, title, body, created FROM articles WHERE id = $1", ID).
+	err := r.DB.QueryRowContext(ctx, "SELECT id, author, title, name, body, created FROM articles WHERE id = $1", ID).
 		Scan(
 			&result.ID,
 			&result.Author,
 			&result.Title,
+			&result.Name,
 			&result.Body,
 			&result.Created,
 		)
 	if err != nil {
-		log.Println("Error while article by ID: ", err)
+		log.Println("Error while get article by ID: ", err)
 		return nil, errArticleNotFound
 	}
 

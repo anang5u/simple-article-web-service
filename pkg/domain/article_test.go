@@ -10,25 +10,27 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	ID      = 1
+	author  = "Author test"
+	title   = "Title test"
+	name    = "title-test"
+	body    = "Body test"
+	created = time.Now()
+)
+
 // Test Article Create
 func Test_ArticleCreate(t *testing.T) {
 	db, mock := service.NewDBMock()
 	repo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
-
-	query := "INSERT INTO articles \\(author, title, body, created\\) VALUES \\(\\$1, \\$2, \\$3, \\$4\\)"
+	query := "INSERT INTO articles \\(author, title, name, body, created\\) VALUES \\(\\$1, \\$2, \\$3, \\$4, \\$5\\)"
 
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(author, title, body, created).WillReturnResult(sqlmock.NewResult(1, 1))
+	prep.ExpectExec().WithArgs(author, title, name, body, created).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	err := repo.Create(author, title, body, created)
+	err := repo.Create(author, title, name, body, created)
 
 	assert.NoError(t, err)
 }
@@ -39,18 +41,10 @@ func Test_ArticleGet(t *testing.T) {
 	repo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
+	query := "SELECT id, author, title, name, body, created FROM articles"
 
-	query := "SELECT id, author, title, body, created FROM articles"
-
-	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
-		AddRow(ID, author, title, body, created)
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
@@ -66,18 +60,10 @@ func Test_ArticleGetWithFilter(t *testing.T) {
 	repo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
+	query := "SELECT id, author, title, name, body, created FROM articles"
 
-	query := "SELECT id, author, title, body, created FROM articles"
-
-	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
-		AddRow(ID, author, title, body, created)
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
 
 	mock.ExpectQuery(query).WillReturnRows(rows)
 
@@ -97,18 +83,10 @@ func Test_GetArticleByID(t *testing.T) {
 	repo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
+	query := "SELECT id, author, title, name, body, created FROM articles WHERE id = \\$1"
 
-	query := "SELECT id, author, title, body, created FROM articles WHERE id = \\$1"
-
-	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
-		AddRow(ID, author, title, body, created)
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
 
 	mock.ExpectQuery(query).WithArgs(ID).WillReturnRows(rows)
 

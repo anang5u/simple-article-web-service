@@ -16,23 +16,24 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	ID      = 1
+	author  = "Author test"
+	title   = "Title test"
+	name    = "title-test"
+	body    = "Body test"
+	created = time.Now()
+)
+
 func TestArticleQueryHandler_GetListArticle(t *testing.T) {
 	db, mock := service.NewDBMock()
 	articleRepo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
+	queryStmt := "SELECT id, author, title, name, body, created FROM articles"
 
-	queryStmt := "SELECT id, author, title, body, created FROM articles"
-
-	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
-		AddRow(ID, author, title, body, created)
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
 
 	mock.ExpectQuery(queryStmt).WillReturnRows(rows)
 
@@ -50,18 +51,10 @@ func TestArticleQueryHandler_GetArticleByID(t *testing.T) {
 	articleRepo := domain.CreateArticleRepository(db)
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author test"
-		title   = "Title test"
-		body    = "Body test"
-		created = time.Now()
-	)
+	queryStmt := "SELECT id, author, title, name, body, created FROM articles WHERE id = \\$1"
 
-	queryStmt := "SELECT id, author, title, body, created FROM articles WHERE id = \\$1"
-
-	rows := sqlmock.NewRows([]string{"id", "author", "title", "body", "created"}).
-		AddRow(ID, author, title, body, created)
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
 
 	mock.ExpectQuery(queryStmt).WithArgs(ID).WillReturnRows(rows)
 

@@ -37,6 +37,7 @@ func Handle(app *fiber.App) {
 	// Route GET list article
 	app.Get("/articles", appConfig.articleController.GetListArticle)
 
-	// Route GET list article
-	app.Get("/articles/:id", appConfig.articleController.GetArticleByID)
+	// Route GET article by id
+	// Add param name for improve SEO Optimization
+	app.Get("/articles/:id/:name", appConfig.articleController.GetArticleByID)
 }

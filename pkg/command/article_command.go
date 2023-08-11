@@ -1,6 +1,7 @@
 package command
 
 import (
+	"simple-ddd-cqrs/helper"
 	"simple-ddd-cqrs/pkg/domain"
 	"time"
 )
@@ -30,7 +31,9 @@ func (h *articleCommandHandler) CreateArticle(author, title, body string, create
 		Body:    body,
 		Created: created,
 	}
-	err := h.articleRepo.Create(article.Author, article.Title, article.Body, article.Created)
+	articleName := helper.Slugify(title)
+
+	err := h.articleRepo.Create(article.Author, article.Title, articleName, article.Body, article.Created)
 	if err != nil {
 		return nil, err
 	}

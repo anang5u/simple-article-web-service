@@ -19,14 +19,15 @@ func Test_ArticleCommandCreate(t *testing.T) {
 	var (
 		author  = "Author test"
 		title   = "Title test"
+		name    = "title-test"
 		body    = "Body test"
 		created = time.Now()
 	)
 
-	query := "INSERT INTO articles \\(author, title, body, created\\) VALUES \\(\\$1, \\$2, \\$3, \\$4\\)"
+	query := "INSERT INTO articles \\(author, title, name, body, created\\) VALUES \\(\\$1, \\$2, \\$3, \\$4, \\$5\\)"
 
 	prep := mock.ExpectPrepare(query)
-	prep.ExpectExec().WithArgs(author, title, body, created).WillReturnResult(sqlmock.NewResult(1, 1))
+	prep.ExpectExec().WithArgs(author, title, name, body, created).WillReturnResult(sqlmock.NewResult(1, 1))
 
 	articleCommandHandler := command.NewArticleCommandHandler(articleRepo)
 
