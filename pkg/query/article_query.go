@@ -50,6 +50,14 @@ func (h *articleQueryHandler) GetListArticle(filters ...map[string]string) ([]*d
 		return nil, err
 	}
 
+	// store articles into cache
+	// background process
+	go func() {
+		if err := h.StoreArticleIntoCache(context.Background(), articles); err != nil {
+			log.Println("Error on GetListArticle while store articles into cache. ", err)
+		}
+	}()
+
 	return articles, nil
 }
 
@@ -69,11 +77,14 @@ func (h *articleQueryHandler) GetArticleByID(ID int) (*domain.ArticleModel, erro
 	}
 
 	// store article into cache
-	articles := []*domain.ArticleModel{}
-	articles = append(articles, article)
-	if err := h.StoreArticleIntoCache(ctx, articles); err != nil {
-		log.Println("Error on GetArticleByID while store article into cache. ", err)
-	}
+	// background process
+	go func() {
+		articles := []*domain.ArticleModel{}
+		articles = append(articles, article)
+		if err := h.StoreArticleIntoCache(ctx, articles); err != nil {
+			log.Println("Error on GetArticleByID while store article into cache. ", err)
+		}
+	}()
 
 	return article, nil
 }
