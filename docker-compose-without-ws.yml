@@ -3,35 +3,32 @@ services:
   
   ## Go Simple Web Service API
   ## ========================
-  web:
-    build: .
-    ports:
-      - "8999:8999"
-    depends_on:
-      - db
-      - redis
+  ## web:
+  ##  build: .
+  ##  ports:
+  ##    - "3000:3000"
+  ##  depends_on:
+  ##    - db
   
   ## Postgres Database
   ## ========================
   db:
     image: postgres:latest
-    container_name: pgsql-server
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: secr3tPWD
       POSTGRES_DB: web_db
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d
-    ##ports:
-    ##  - "5433:5432"
+    ports:
+      - "5433:5432"
 
   ## Redis
   ## ========================
   redis:
     image: "bitnami/redis:latest"
-    container_name: redis-server
-    ##ports:
-    ##  - 6379:6379
+    ports:
+      - 6379:6379
     environment:
       - REDIS_REPLICATION_MODE=master
       - REDIS_PASSWORD=my_master_password
@@ -63,21 +60,21 @@ services:
       - ./doc:/usr/share/nginx/html/doc
     environment:
       URLS: "[{ url: 'doc/articles.yml', name: 'Articles'}]"
-    depends_on:
-      - web
+    #depends_on:
+    #  - web
 
   ## Extra
   ## Grafana, Promether, Redis Exporter
   grafana:
     image: grafana/grafana
     ports:
-      - 3210:3000
+      - 3000:3000
 
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     ports:
-      - 9091:9090
+      - 9090:9090
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       

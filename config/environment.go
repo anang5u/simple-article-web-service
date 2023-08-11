@@ -23,7 +23,7 @@ var Environment = map[string]string{
 	"db_pool_max_lifetime":   "5",
 
 	// Redis
-	"redis_addr":     "localhost:6379",
+	"redis_addr":     "redis-server:6379",
 	"redis_password": "my_master_password",
 	"redis_db":       "0",
 
