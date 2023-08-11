@@ -23,6 +23,16 @@ services:
     ports:
       - "5433:5432"
 
+  ## Redis
+  ## ========================
+  redis:
+    image: "bitnami/redis:latest"
+    ports:
+      - 6379:6379
+    environment:
+      - REDIS_REPLICATION_MODE=master
+      - REDIS_PASSWORD=my_master_password
+
   ## pgAdmin
   ## ========================
   pgadmin:
@@ -52,3 +62,31 @@ services:
       URLS: "[{ url: 'doc/articles.yml', name: 'Articles'}]"
     #depends_on:
     #  - web
+
+  ## Extra
+  ## Grafana, Promether, Redis Exporter
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      
+  redis-exporter:
+    image: oliver006/redis_exporter
+    ports:
+      - 9121:9121
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis:6379"
+      REDIS_USER: null
+      REDIS_PASSWORD: my_master_password
+    links:
+      - redis
+      - prometheus
