@@ -21,6 +21,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	ID      = 1
+	author  = "Author Test"
+	title   = "Title Test"
+	name    = "title-test"
+	body    = "Body Test"
+	created = time.Now()
+)
+
 type anyTime struct{}
 
 func (anyTime) Match(v driver.Value) bool {
@@ -43,10 +52,10 @@ func TestHandle_PostArticle(t *testing.T) {
 		Name   string
 		Body   string
 	}{
-		Author: "Author Test",
-		Title:  "Title Test",
-		Name:   "title-test",
-		Body:   "Body test",
+		Author: author,
+		Title:  title,
+		Name:   name,
+		Body:   body,
 	}
 
 	query := regexp.QuoteMeta(`INSERT INTO articles`)
@@ -93,14 +102,6 @@ func TestHandle_GetListArticle(t *testing.T) {
 	db, mock := service.NewDBMock()
 	defer db.Close()
 
-	var (
-		ID      = 1
-		author  = "Author Test"
-		title   = "Title Test"
-		name    = "title-test"
-		body    = "Body Test"
-		created = time.Now()
-	)
 	queryStmt := "SELECT id, author, title, name, body, created FROM articles"
 	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
 		AddRow(ID, author, title, name, body, created)
@@ -122,7 +123,6 @@ func TestHandle_GetListArticle(t *testing.T) {
 
 	// Test Route POST /articles
 	req := httptest.NewRequest("GET", "/articles", nil)
-	req.Header.Set("Content-Type", "application/json")
 	resp, err := app.Test(req, -1)
 
 	assert.NoError(t, err)
@@ -131,6 +131,45 @@ func TestHandle_GetListArticle(t *testing.T) {
 	// read and unmarshal respons JSON
 	var articles []domain.ArticleModel
 	err = json.NewDecoder(resp.Body).Decode(&articles)
+	assert.NoError(t, err)
+	// ... assert lainnya sesuai kebutuhan
+}
+
+// Test Route GET /articles/:id/:name - get article by id
+func TestHandle_GetArticleByID(t *testing.T) {
+	// init DB Mock
+	db, mock := service.NewDBMock()
+	defer db.Close()
+
+	queryStmt := "SELECT id, author, title, name, body, created FROM articles"
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
+
+	mock.ExpectQuery(queryStmt).WillReturnRows(rows)
+
+	// Init article repository
+	articleRepo := domain.CreateArticleRepository(db)
+
+	// Init QUERY handlers
+	articleQueryHandler := query.NewArticleQueryHandler(articleRepo)
+	articleController := controller.NewArticleController(nil, articleQueryHandler)
+
+	// Membuat instance Fiber app
+	app := fiber.New()
+
+	// Memasang handler ke dalam Fiber app
+	routes.Handle(app, articleController)
+
+	// Membuat request GET dengan parameter ID dan Name
+	req := httptest.NewRequest("GET", "/articles/1/test-article", nil)
+	resp, err := app.Test(req, -1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	// Membaca dan meng-unmarshal respons JSON
+	var article domain.ArticleModel
+	err = json.NewDecoder(resp.Body).Decode(&article)
 	assert.NoError(t, err)
 	// ... assert lainnya sesuai kebutuhan
 }
