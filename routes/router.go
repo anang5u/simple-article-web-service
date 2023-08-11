@@ -21,7 +21,7 @@ func Handle(app *fiber.App, articleController *controller.ArticleController) {
 	app.Post("/articles", appConfig.articleController.CreateArticle)
 
 	// Route GET list article
-	app.Get("/articles", appConfig.articleController.GetListArticle)
+	app.Get("/articles/", appConfig.articleController.GetListArticle)
 
 	// Route GET article by id
 	// Add param name for improve SEO Optimization

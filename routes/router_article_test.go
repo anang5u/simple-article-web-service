@@ -122,7 +122,7 @@ func TestHandle_GetListArticle(t *testing.T) {
 	routes.Handle(app, articleController)
 
 	// Test Route POST /articles
-	req := httptest.NewRequest("GET", "/articles", nil)
+	req := httptest.NewRequest("GET", "/articles/?title=test&body=test&author=test", nil)
 	resp, err := app.Test(req, -1)
 
 	assert.NoError(t, err)

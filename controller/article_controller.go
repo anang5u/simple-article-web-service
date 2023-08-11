@@ -47,7 +47,24 @@ func (ctr *ArticleController) CreateArticle(c *fiber.Ctx) error {
 
 // GetListArticle
 func (ctr *ArticleController) GetListArticle(c *fiber.Ctx) error {
-	article, err := ctr.articleQueryHandler.GetListArticle()
+	// filter by search title, body
+	// filter by author
+	searchTitle := c.Query("title") // search title
+	searchBody := c.Query("body")   // search body
+	byAuthor := c.Query("author")   // filter by author
+
+	filters := map[string]string{}
+	if len(searchTitle) > 0 {
+		filters["title"] = searchTitle
+	}
+	if len(searchBody) > 0 {
+		filters["body"] = searchBody
+	}
+	if len(byAuthor) > 0 {
+		filters["author"] = byAuthor
+	}
+
+	article, err := ctr.articleQueryHandler.GetListArticle(filters)
 	if err != nil {
 		return c.Status(http.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
 	}
