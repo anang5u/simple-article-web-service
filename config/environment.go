@@ -16,6 +16,11 @@ var Environment = map[string]string{
 	"db_password": "secr3tPWD",
 	"db_name":     "web_db",
 
+	// Database Pool
+	"db_pool_max_open_conns": "25",
+	"db_pool_max_idle_conns": "25",
+	"db_pool_max_lifetime":   "5",
+
 	// Redis
 	"redis_addr":     "localhost:6379",
 	"redis_password": "",
