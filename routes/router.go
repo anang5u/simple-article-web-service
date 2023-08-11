@@ -2,10 +2,6 @@ package routes
 
 import (
 	"simple-ddd-cqrs/controller"
-	"simple-ddd-cqrs/pkg/command"
-	"simple-ddd-cqrs/pkg/domain"
-	"simple-ddd-cqrs/pkg/query"
-	"simple-ddd-cqrs/service"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,17 +11,7 @@ type App struct {
 	articleController *controller.ArticleController
 }
 
-func Handle(app *fiber.App) {
-	// create article repository
-	articleRepo := domain.CreateArticleRepository(service.GetDBConnection())
-
-	// Init command and query handlers
-	articleCommandHandler := command.NewArticleCommandHandler(articleRepo)
-	articleQueryHandler := query.NewArticleQueryHandler(articleRepo)
-
-	// Init controller
-	articleController := controller.NewArticleController(articleCommandHandler, articleQueryHandler)
-
+func Handle(app *fiber.App, articleController *controller.ArticleController) {
 	// Init App with controller
 	appConfig := App{
 		articleController: articleController,

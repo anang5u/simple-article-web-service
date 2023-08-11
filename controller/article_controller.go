@@ -42,7 +42,7 @@ func (ctr *ArticleController) CreateArticle(c *fiber.Ctx) error {
 		return c.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(http.StatusOK).JSON(article)
+	return c.Status(http.StatusCreated).JSON(article)
 }
 
 // GetListArticle

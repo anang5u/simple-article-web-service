@@ -28,12 +28,12 @@ func (h *articleCommandHandler) CreateArticle(author, title, body string, create
 	article := &domain.ArticleModel{
 		Author:  author,
 		Title:   title,
+		Name:    helper.Slugify(title),
 		Body:    body,
 		Created: created,
 	}
-	articleName := helper.Slugify(title)
 
-	err := h.articleRepo.Create(article.Author, article.Title, articleName, article.Body, article.Created)
+	err := h.articleRepo.Create(article.Author, article.Title, article.Name, article.Body, article.Created)
 	if err != nil {
 		return nil, err
 	}
