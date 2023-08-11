@@ -23,7 +23,7 @@ var Environment = map[string]string{
 
 	// Redis
 	"redis_addr":     "localhost:6379",
-	"redis_password": "",
+	"redis_password": "my_master_password",
 	"redis_db":       "0",
 
 	// others
