@@ -9,6 +9,7 @@ import (
 	"simple-ddd-cqrs/controller"
 	"simple-ddd-cqrs/pkg/command"
 	"simple-ddd-cqrs/pkg/domain"
+	"simple-ddd-cqrs/pkg/query"
 	"simple-ddd-cqrs/routes"
 	"simple-ddd-cqrs/service"
 	"strings"
@@ -27,6 +28,7 @@ func (anyTime) Match(v driver.Value) bool {
 	return ok
 }
 
+// Test Route POST /articles - Create new article
 func TestHandle_PostArticle(t *testing.T) {
 	// init DB Mock
 	db, mock := service.NewDBMock()
@@ -51,7 +53,7 @@ func TestHandle_PostArticle(t *testing.T) {
 	prep := mock.ExpectPrepare(query)
 	prep.ExpectExec().WithArgs(articleMock.Author, articleMock.Title, articleMock.Name, articleMock.Body, anyTime{}).WillReturnResult(sqlmock.NewResult(1, 1))
 
-	// Init command handlers
+	// Init COMMAND handlers
 	articleCommandHandler := command.NewArticleCommandHandler(articleRepo)
 	articleController := controller.NewArticleController(articleCommandHandler, nil)
 
@@ -82,5 +84,53 @@ func TestHandle_PostArticle(t *testing.T) {
 	assert.Equal(t, articleMock.Author, createdArticle.Author)
 	assert.Equal(t, articleMock.Title, createdArticle.Title)
 	assert.Equal(t, articleMock.Name, createdArticle.Name)
+	// ... assert lainnya sesuai kebutuhan
+}
+
+// Test Route GET /articles - get list articles
+func TestHandle_GetListArticle(t *testing.T) {
+	// init DB Mock
+	db, mock := service.NewDBMock()
+	defer db.Close()
+
+	var (
+		ID      = 1
+		author  = "Author Test"
+		title   = "Title Test"
+		name    = "title-test"
+		body    = "Body Test"
+		created = time.Now()
+	)
+	queryStmt := "SELECT id, author, title, name, body, created FROM articles"
+	rows := sqlmock.NewRows([]string{"id", "author", "title", "name", "body", "created"}).
+		AddRow(ID, author, title, name, body, created)
+
+	mock.ExpectQuery(queryStmt).WillReturnRows(rows)
+
+	// Init article repository
+	articleRepo := domain.CreateArticleRepository(db)
+
+	// Init QUERY handlers
+	articleQueryHandler := query.NewArticleQueryHandler(articleRepo)
+	articleController := controller.NewArticleController(nil, articleQueryHandler)
+
+	// Membuat instance Fiber app
+	app := fiber.New()
+
+	// Memasang handler ke dalam Fiber app
+	routes.Handle(app, articleController)
+
+	// Test Route POST /articles
+	req := httptest.NewRequest("GET", "/articles", nil)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := app.Test(req, -1)
+
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	// read and unmarshal respons JSON
+	var articles []domain.ArticleModel
+	err = json.NewDecoder(resp.Body).Decode(&articles)
+	assert.NoError(t, err)
 	// ... assert lainnya sesuai kebutuhan
 }
