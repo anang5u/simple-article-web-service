@@ -52,6 +52,12 @@ Silahkan untuk melakukan <i>Create a new article</i> terlebih dahulu sebelum [GE
 ```
 $ docker logs simple-article-web-service-web-1
 ```
+atau untuk melihat semua container
+```
+$ docker container ls
+$ docker container ls -a
+```
+
 Contoh Request-Responses Swagger UI untuk enpoint POST /articles <i>Create a new article</i>
 
 ![Create a new article](/doc/swagger-ui-create-article.jpg)
