@@ -172,7 +172,7 @@ func (r *article) BuildFilterValues(filter map[string]string) (string, []interfa
 	// filter by keyword search title
 	if title, ok := filter["title"]; ok {
 		sFilter = fmt.Sprintf("%s LOWER(title) LIKE '%%' || $%d || '%%' AND", sFilter, num)
-		filterValues = append(filterValues, title)
+		filterValues = append(filterValues, strings.ToLower(title))
 
 		num++
 	}
@@ -180,15 +180,15 @@ func (r *article) BuildFilterValues(filter map[string]string) (string, []interfa
 	// filter by keyword search body
 	if body, ok := filter["body"]; ok {
 		sFilter = fmt.Sprintf("%s LOWER(body) LIKE '%%' || $%d || '%%' AND", sFilter, num)
-		filterValues = append(filterValues, body)
+		filterValues = append(filterValues, strings.ToLower(body))
 
 		num++
 	}
 
 	// filter by author
 	if author, ok := filter["author"]; ok {
-		sFilter = fmt.Sprintf("%s author = $%d AND", sFilter, num)
-		filterValues = append(filterValues, author)
+		sFilter = fmt.Sprintf("%s LOWER(author) = $%d AND", sFilter, num)
+		filterValues = append(filterValues, strings.ToLower(author))
 
 		num++
 	}
